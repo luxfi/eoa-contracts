@@ -250,6 +250,11 @@ describe("Wallet tx gas estimations with and without refunds", function () {
 
     // handlePaymentRevert
 
+    console.log(safeTx.gasPrice);
+    console.log(safeTx.refundReceiver);
+    console.log(safeTx.gasToken);
+    console.log("before handle payment revert");
+
     const handlePaymentGasData = SmartWallet.interface.encodeFunctionData(
       "handlePaymentRevert",
       [
