@@ -101,7 +101,7 @@ contract SmartAccount is
 
     // onlyOwner OR self
     modifier mixedAuth {
-        require(msg.sender == owner || msg.sender == address(this),"Only owner or self");
+        require(msg.sender == owner || msg.sender == address(this), "Only owner or self");
         _;
    }
 
@@ -122,7 +122,8 @@ contract SmartAccount is
      */
     // todo: write test case for updating implementation
     // review for all methods to be invoked by smart account to self
-    function updateImplementation(address _implementation) public mixedAuth {
+    function updateImplementation(address _implementation) public {
+        _requireFromEntryPointOrOwner();
         require(_implementation.isContract(), "INVALID_IMPLEMENTATION");
         _setImplementation(_implementation);
         // EOA + Version tracking
