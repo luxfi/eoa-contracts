@@ -67,7 +67,9 @@ contract SmartAccountNoAuth is
     
     // Events
     // EOA + Version tracking
+    // Review when you keep it bytes32 it doesn't match with string value in testCase emit.withArgs
     event ImplementationUpdated(address _scw, string version, address newImplementation);
+
     event EntryPointChanged(address oldEntryPoint, address newEntryPoint);
     event EOAChanged(address indexed _scw, address indexed _oldEOA, address indexed _newEOA);
     event WalletHandlePayment(bytes32 txHash, uint256 payment);
