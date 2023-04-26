@@ -67,6 +67,12 @@ abstract contract ModuleManager is
 
     /**
      * @dev Adds a module to the allowlist.
+     * @notice This SHOULD only be done via userOp or a selfcall.
+     */
+    function enableModule(address module) external virtual;
+
+    /**
+     * @dev Adds a module to the allowlist.
      * @notice This can only be done via a userOp or a selfcall.
      * @notice Enables the module `module` for the wallet.
      * @param module Module to be allow-listed.
@@ -86,9 +92,16 @@ abstract contract ModuleManager is
 
     /**
      * @dev Setups module for this Smart Account and enables it.
+     * @notice This SHOULD only be done via userOp or a selfcall.
+     */
+    function setupAndEnableModule(
+        address setupContract,
+        bytes memory setupData
+    ) external virtual returns (address);
+
+    /**
+     * @dev Setups module for this Smart Account and enables it.
      * @notice This can only be done via userOp or a selfcall.
-     * @notice Enables the module `module` for the wallet.
-    
      */
     function _setupAndEnableModule(
         address setupContract,

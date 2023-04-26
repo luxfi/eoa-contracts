@@ -69,11 +69,6 @@ contract SmartAccount is
         address indexed oldImplementation,
         address indexed newImplementation
     );
-    event EOAChanged(
-        address indexed _scw,
-        address indexed _oldEOA,
-        address indexed _newEOA
-    );
     event AccountHandlePayment(bytes32 indexed txHash, uint256 indexed payment);
     event SmartAccountReceivedNativeToken(
         address indexed sender,
@@ -684,7 +679,7 @@ contract SmartAccount is
      * @notice Enables the module `module` for the wallet.
      * @param module Module to be allow-listed.
      */
-    function enableModule(address module) public virtual {
+    function enableModule(address module) external virtual override {
         _requireFromEntryPointOrSelf();
         _enableModule(module);
     }
@@ -693,12 +688,11 @@ contract SmartAccount is
      * @dev Setups module for this Smart Account and enables it.
      * @notice This can only be done via userOp or a selfcall.
      * @notice Enables the module `module` for the wallet.
-    
      */
     function setupAndEnableModule(
         address setupContract,
         bytes memory setupData
-    ) public virtual returns (address) {
+    ) external virtual override returns (address) {
         _requireFromEntryPointOrSelf();
         return _setupAndEnableModule(setupContract, setupData);
     }
