@@ -13,7 +13,7 @@ import {IERC165} from "./interfaces/IERC165.sol";
 import {ReentrancyGuard} from "./common/ReentrancyGuard.sol";
 import {SmartAccountErrors} from "./common/Errors.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {IModule} from "./interfaces/IModule.sol";
+import {IAuthorizationModule} from "./interfaces/IAuthorizationModule.sol";
 
 /**
  * @title SmartAccount - EIP-4337 compatible smart contract wallet.
@@ -605,10 +605,8 @@ contract SmartAccount is
             (bytes, address)
         );
         if (address(modules[validationModule]) != address(0)) {
-            validationData = IModule(validationModule).validateUserOp(
-                userOp,
-                userOpHash
-            );
+            validationData = IAuthorizationModule(validationModule)
+                .validateUserOp(userOp, userOpHash);
         } else {
             revert WrongValidationModule(validationModule);
         }
