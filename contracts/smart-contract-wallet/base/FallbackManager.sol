@@ -9,7 +9,7 @@ import {FallbackManagerErrors} from "../common/Errors.sol";
  *   @dev Fallback calls are handled by a `handler` contract that is stored at FALLBACK_HANDLER_STORAGE_SLOT
  *        fallback calls are not delegated to the `handler` so they can not directly change Smart Account storage
  */
-contract FallbackManager is SelfAuthorized, FallbackManagerErrors {
+abstract contract FallbackManager is SelfAuthorized, FallbackManagerErrors {
     // keccak-256 hash of "fallback_manager.handler.address" subtracted by 1
     bytes32 internal constant FALLBACK_HANDLER_STORAGE_SLOT =
         0x6c9a6c4a39284e37ed1cf53d337577d14212a4870fb976a4366c693b939918d4;
@@ -58,26 +58,23 @@ contract FallbackManager is SelfAuthorized, FallbackManagerErrors {
     }
 
     /// @dev Allows to add a contract to handle fallback calls.
-    ///      Only fallback calls without value and with data will be forwarded.
-    ///      This can only be done via a smartAccount transaction.
+    ///      Only fallback calls without value and with data will be forwarded
     /// @param handler contract to handle fallback calls.
-    function setFallbackHandler(address handler) public authorized {
+    function setFallbackHandler(address handler) external virtual;
+
+    function _setFallbackHandler(address handler) internal {
+        if (handler == address(0)) revert HandlerCannotBeZero();
         address previousHandler;
         // solhint-disable-next-line no-inline-assembly
         assembly {
             previousHandler := sload(FALLBACK_HANDLER_STORAGE_SLOT)
+            //}
+            //bytes32 slot = FALLBACK_HANDLER_STORAGE_SLOT;
+            // solhint-disable-next-line no-inline-assembly
+            //assembly {
+            sstore(FALLBACK_HANDLER_STORAGE_SLOT, handler)
         }
-        _setFallbackHandler(handler);
         emit ChangedFallbackHandler(previousHandler, handler);
-    }
-
-    function _setFallbackHandler(address handler) internal {
-        if (handler == address(0)) revert HandlerCannotBeZero();
-        bytes32 slot = FALLBACK_HANDLER_STORAGE_SLOT;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            sstore(slot, handler)
-        }
     }
 
     uint256[24] private __gap;
