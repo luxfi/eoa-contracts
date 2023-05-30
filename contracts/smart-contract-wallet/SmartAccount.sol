@@ -604,6 +604,7 @@ contract SmartAccount is
             userOp.signature,
             (bytes, address)
         );
+        //TODO: USE if(isModuleEnabled()) instead?
         if (address(modules[validationModule]) != address(0)) {
             validationData = IAuthorizationModule(validationModule)
                 .validateUserOp(userOp, userOpHash);
