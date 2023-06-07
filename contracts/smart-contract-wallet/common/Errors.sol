@@ -85,14 +85,6 @@ contract SmartAccountErrors is BaseSmartAccountErrors, ModuleManagerErrors {
     error MixedAuthFail(address caller);
 
     /**
-     * @notice Throws if transfer of tokens failed
-     * @param token token contract address
-     * @param dest token transfer receiver
-     * @param amount the amount of tokens in a failed transfer
-     */
-    error TokenTransferFailed(address token, address dest, uint256 amount);
-
-    /**
      * @notice Throws if trying to change an owner of a SmartAccount to the zero address
      */
     error OwnerCannotBeZero();
@@ -138,27 +130,6 @@ contract SmartAccountErrors is BaseSmartAccountErrors, ModuleManagerErrors {
     error AlreadyInitialized();
 
     /**
-     * @notice Throws if not enough gas is left at some point
-     * @param gasLeft how much gas left at the moment of a check
-     * @param gasRequired how much gas required to proceed
-     */
-    error NotEnoughGasLeft(uint256 gasLeft, uint256 gasRequired);
-
-    /**
-     * @notice Throws if not able to estimate gas
-     * It can be when amount of gas and its price are both zero and at the same time
-     * transaction has failed to be executed
-     * @param targetTxGas gas required for target transaction
-     * @param gasPrice gas price passed in Refund Info
-     * @param success whether transaction has been executed successfully or not
-     */
-    error CanNotEstimateGas(
-        uint256 targetTxGas,
-        uint256 gasPrice,
-        bool success
-    );
-
-    /**
      * @notice Throws if contract signature is provided in frong format
      * @param uintS s converted to uint256
      * @param contractSignatureLength length of a contract signature
@@ -175,17 +146,6 @@ contract SmartAccountErrors is BaseSmartAccountErrors, ModuleManagerErrors {
      * @param contractSignature the contract signature that has been verified
      */
     error WrongContractSignature(bytes contractSignature);
-
-    /**
-     * @notice Throws when the address that signed the data (restored from signature)
-     * differs from the address we expected to sign the data (i.e. some authorized address)
-     */
-    error InvalidSignature();
-
-    /**
-     * @notice Throws when the transaction execution fails
-     */
-    error ExecutionFailed();
 
     /**
      * @notice Throws when if trying to transfer to zero address
@@ -212,11 +172,6 @@ contract SmartAccountErrors is BaseSmartAccountErrors, ModuleManagerErrors {
      * @notice Thrown when trying to use current owner as a new owner in a _setOwner() call
      */
     error OwnerProvidedIsSame();
-
-    /**
-     * @notice Thrown when trying to use 0 as tokenGasPriceFactor
-     */
-    error TokenGasPriceFactorCanNotBeZero();
 }
 
 contract SmartAccountFactoryErrors is SmartAccountErrors {
