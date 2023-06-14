@@ -10,6 +10,7 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
  *         - It allows to validate user operations signed by EOA private key.
  *         - EIP-1271 compatible (ensures Smart Account can validate signed messages).
  *         - One owner per Smart Account.
+ *         - Does not support outdated eth_sign flow for cheaper validations (see https://support.metamask.io/hc/en-us/articles/14764161421467-What-is-eth-sign-and-why-is-it-a-risk-)
  * !!!!!!! Only EOA owners supported, no Smart Account Owners
  *         For Smart Contract Owners check SmartContractOwnership module instead
  * @author Fil Makarov - <filipp.makarov@biconomy.io>
@@ -77,20 +78,12 @@ contract EcdsaOwnershipRegistryModule is BaseAuthorizationModule {
             userOp.signature,
             (bytes, address)
         );
-        // validateUserOp gets a hash not prepended with 'x\x19Ethereum Signed Message:\n32'
-        // so we have to do it manually
-        bytes32 ethSignedHash = userOpHash.toEthSignedMessageHash();
-        return _validateSignature(userOp, ethSignedHash, moduleSignature);
-    }
-
-    function _validateSignature(
-        UserOperation calldata userOp,
-        bytes32 ethSignedUserOpHash,
-        bytes memory moduleSignature
-    ) internal view virtual returns (uint256 sigValidationResult) {
+        // validateUserOp gets from EP a hash not prepended with 'x\x19Ethereum Signed Message:\n32'
+        // so we have to do it manually, as on the user side it is signed with personal_sign
+        // that prepends with "\x19Ethereum Signed Message\n32"
         if (
             _verifySignature(
-                ethSignedUserOpHash,
+                userOpHash.toEthSignedMessageHash(),
                 moduleSignature,
                 userOp.sender
             )
@@ -103,39 +96,31 @@ contract EcdsaOwnershipRegistryModule is BaseAuthorizationModule {
     /**
      * @dev Validates a signature for a message.
      * To be called from a Smart Account.
-     * Expects a hash prepended with 'x\x19Ethereum Signed Message:\n32'
-     * @param ethSignedDataHash Hash of the data to be validated.
+     * @param dataHash Exact hash of the data that was signed.
      * @param moduleSignature Signature to be validated.
      * @return EIP1271_MAGIC_VALUE if signature is valid, 0xffffffff otherwise.
      */
     function isValidSignature(
-        bytes32 ethSignedDataHash,
+        bytes32 dataHash,
         bytes memory moduleSignature
     ) public view virtual override returns (bytes4) {
         return
-            isValidSignatureForAddress(
-                ethSignedDataHash,
-                moduleSignature,
-                msg.sender
-            );
+            isValidSignatureForAddress(dataHash, moduleSignature, msg.sender);
     }
 
     /**
      * @dev Validates a signature for a message signed by address.
-     * Expects a hash prepended with 'x\x19Ethereum Signed Message:\n32'
-     * @param ethSignedDataHash Hash of the data to be validated.
+     * @param dataHash Exact hash of the data that was signed.
      * @param moduleSignature Signature to be validated.
      * @param smartAccount expected signer Smart Account address.
      * @return EIP1271_MAGIC_VALUE if signature is valid, 0xffffffff otherwise.
      */
     function isValidSignatureForAddress(
-        bytes32 ethSignedDataHash,
+        bytes32 dataHash,
         bytes memory moduleSignature,
         address smartAccount
     ) public view virtual returns (bytes4) {
-        if (
-            _verifySignature(ethSignedDataHash, moduleSignature, smartAccount)
-        ) {
+        if (_verifySignature(dataHash, moduleSignature, smartAccount)) {
             return EIP1271_MAGIC_VALUE;
         }
         return bytes4(0xffffffff);
@@ -159,36 +144,6 @@ contract EcdsaOwnershipRegistryModule is BaseAuthorizationModule {
         if (expectedSigner == address(0))
             revert NoOwnerRegisteredForSmartAccount(smartAccount);
         if (signature.length < 65) revert WrongSignatureLength();
-        (uint8 v, bytes32 r, bytes32 s) = _signatureSplit(signature);
-        if (v > 30) {
-            //eth_sign flow
-            (address _signer, ) = dataHash.toEthSignedMessageHash().tryRecover(
-                v - 4,
-                r,
-                s
-            );
-            return expectedSigner == _signer;
-        } else {
-            return expectedSigner == dataHash.recover(signature);
-        }
-    }
-
-    function _signatureSplit(
-        bytes memory signature
-    ) internal pure returns (uint8 v, bytes32 r, bytes32 s) {
-        // The signature format is a compact form of:
-        //   {bytes32 r}{bytes32 s}{uint8 v}
-        // Compact means, uint8 is not padded to 32 bytes.
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            r := mload(add(signature, 0x20))
-            s := mload(add(signature, 0x40))
-            // Here we are loading the last 32 bytes, including 31 bytes
-            // of 's'. There is no 'mload8' to do this.
-            //
-            // 'byte' is not working due to the Solidity parser, so let's
-            // use the second best option, 'and'
-            v := and(mload(add(signature, 0x41)), 0xff)
-        }
+        return expectedSigner == dataHash.recover(signature);
     }
 }
