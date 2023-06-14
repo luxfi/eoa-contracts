@@ -100,38 +100,31 @@ contract SmartContractOwnershipRegistryModule is BaseAuthorizationModule {
      * @dev Validates a signature for a message.
      * To be called from a Smart Account.
      * Expects a hash prepended with 'x\x19Ethereum Signed Message:\n32'
-     * @param ethSignedDataHash Hash of the data to be validated.
+     * @param dataHash Exact hash of the data that was signed.
      * @param moduleSignature Signature to be validated.
      * @return EIP1271_MAGIC_VALUE if signature is valid, 0xffffffff otherwise.
      */
     function isValidSignature(
-        bytes32 ethSignedDataHash,
+        bytes32 dataHash,
         bytes memory moduleSignature
     ) public view virtual override returns (bytes4) {
         return
-            isValidSignatureForAddress(
-                ethSignedDataHash,
-                moduleSignature,
-                msg.sender
-            );
+            isValidSignatureForAddress(dataHash, moduleSignature, msg.sender);
     }
 
     /**
      * @dev Validates a signature for a message signed by address.
-     * Expects a hash prepended with 'x\x19Ethereum Signed Message:\n32'
-     * @param ethSignedDataHash Hash of the data to be validated.
+     * @param dataHash Exact hash of the data that was signed.
      * @param moduleSignature Signature to be validated.
      * @param smartAccount expected signer Smart Account address.
      * @return EIP1271_MAGIC_VALUE if signature is valid, 0xffffffff otherwise.
      */
     function isValidSignatureForAddress(
-        bytes32 ethSignedDataHash,
+        bytes32 dataHash,
         bytes memory moduleSignature,
         address smartAccount
     ) public view virtual returns (bytes4) {
-        if (
-            _verifySignature(ethSignedDataHash, moduleSignature, smartAccount)
-        ) {
+        if (_verifySignature(dataHash, moduleSignature, smartAccount)) {
             return EIP1271_MAGIC_VALUE;
         }
         return bytes4(0xffffffff);
