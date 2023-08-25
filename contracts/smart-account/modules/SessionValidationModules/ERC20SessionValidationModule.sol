@@ -30,8 +30,8 @@ contract ERC20SessionValidationModule is ISessionValidationModule {
         bytes calldata _sessionKeySignature
     ) external pure override returns (bool) {
         require(
-            bytes4(_op.callData[0:4]) == EXECUTE_SELECTOR ||
-                bytes4(_op.callData[0:4]) == EXECUTE_OPTIMIZED_SELECTOR,
+            bytes4(_op.callData[0:4]) == EXECUTE_OPTIMIZED_SELECTOR ||
+                bytes4(_op.callData[0:4]) == EXECUTE_SELECTOR,
             "ERC20SV Invalid Selector"
         );
 
@@ -51,7 +51,7 @@ contract ERC20SessionValidationModule is ISessionValidationModule {
             if (tokenAddr != token) {
                 revert("ERC20SV Wrong Token");
             }
-            if (callValue > 0) {
+            if (callValue != 0) {
                 revert("ERC20SV Non Zero Value");
             }
         }
