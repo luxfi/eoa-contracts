@@ -79,4 +79,27 @@ contract ERC20SessionValidationModule is ISessionValidationModule {
                 _sessionKeySignature
             ) == sessionKey;
     }
+
+    function validateSessionParams(
+        address destinationContract,
+        uint256 callValue,
+        bytes calldata _funcCallData,
+        bytes calldata _sessionKeyData
+    ) external virtual override {
+        (, address token, address recipient, uint256 maxAmount) = abi.decode(
+            _sessionKeyData,
+            (address, address, address, uint256)
+        );
+
+        require(destinationContract == token, "ERC20SV Invalid Token");
+        require(callValue == 0, "ERC20SV Non Zero Value");
+
+        (address recepientCalled, uint256 amount) = abi.decode(
+            _funcCallData[4:],
+            (address, uint256)
+        );
+
+        require(recipient == recepientCalled, "ERC20SV Wrong Recipient");
+        require(amount <= maxAmount, "ERC20SV Max Amount Exceeded");
+    }
 }
