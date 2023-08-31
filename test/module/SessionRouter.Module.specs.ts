@@ -97,8 +97,16 @@ describe("SessionKey: Session Router", async () => {
       mockProtocolSVModule.address
     );
 
+    let leaves = [ethers.utils.keccak256(leafData)];
+    for(let i = 0; i < 9999; i++) {
+      if(i == 4987) {
+        leaves.push(ethers.utils.keccak256(leafData2));
+      }
+      leaves.push(ethers.utils.keccak256(ethers.utils.randomBytes(32)));
+    }
+
     const merkleTree = await enableNewTreeForSmartAccountViaEcdsa(
-      [ethers.utils.keccak256(leafData), ethers.utils.keccak256(leafData2)],
+      leaves,
       sessionKeyManager,
       userSA.address,
       smartAccountOwner,
@@ -140,7 +148,7 @@ describe("SessionKey: Session Router", async () => {
 
     const approveCallData = IERC20.interface.encodeFunctionData("approve", [mockProtocol.address, tokenAmountToTransfer]);
     const interactCallData = MockProtocol.interface.encodeFunctionData("interact", [mockToken.address, tokenAmountToTransfer]);
-    const executeBatchData = SmartAccount.interface.encodeFunctionData("executeBatch", [[mockToken.address, mockProtocol.address],[0,0],[approveCallData, interactCallData]]);
+    const executeBatchData = SmartAccount.interface.encodeFunctionData("executeBatch_y6U", [[mockToken.address, mockProtocol.address],[0,0],[approveCallData, interactCallData]]);
 
     const userOp = await fillAndSign(
       {
@@ -174,6 +182,9 @@ describe("SessionKey: Session Router", async () => {
       ]
     );
 
+    console.log("padded sig: ", paddedSig);
+    console.log("length ", ethers.utils.toUtf8Bytes(paddedSig).length); // 4226 bytes //216899 gas
+
     const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
       ["bytes", "address"], 
       [paddedSig, sessionRouter.address]
@@ -182,7 +193,7 @@ describe("SessionKey: Session Router", async () => {
 
     const handleTx = await entryPoint.handleOps([userOp], alice.address, {gasLimit: 10000000});
     const receipt = await handleTx.wait();
-    //console.log("gas used for batched routed userOp: ", receipt.gasUsed.toString());
+    console.log("gas used for batched routed userOp: ", receipt.gasUsed.toString());
 
     expect(await mockToken.balanceOf(mockProtocol.address)).to.equal(tokenAmountToTransfer);
   });
