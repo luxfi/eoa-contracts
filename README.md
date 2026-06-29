@@ -1,3 +1,5 @@
+<p align="center"><img src=".github/hero.svg" alt="eoa-contracts" width="880"></p>
+
 ![Solidity](https://img.shields.io/badge/Solidity-0.8.17-blue.svg) ![Hardhat](https://img.shields.io/badge/Framework-Hardhat-brightgreen.svg) ![Foundry](https://img.shields.io/badge/Framework-Foundry-orange.svg) ![Test Coverage](https://img.shields.io/badge/Coverage-45%25-red.svg)
 
 # Biconomy Smart Account: Leading Implementation of Account Abstraction 🌐
